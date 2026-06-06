@@ -67,11 +67,3 @@ model PrintJob {
   status    PrintJobStatus @default(WAITING)
   createdAt DateTime       @default(now())
 }
-
-
-model AppSetting {
-  key       String   @id
-  value     String
-  encrypted Boolean  @default(false)
-  updatedAt DateTime @updatedAt
-}

@@ -1,29 +1,12 @@
 import crypto from "crypto";
 import Razorpay from "razorpay";
-import { getRazorpayConfig } from "@/lib/settings";
-
-function safeCompare(expected: string, actual: string) {
-  const expectedBuffer = Buffer.from(expected);
-  const actualBuffer = Buffer.from(actual);
-  return expectedBuffer.length === actualBuffer.length && crypto.timingSafeEqual(expectedBuffer, actualBuffer);
+import { requireEnv } from "@/lib/env";
+export function razorpay() { return new Razorpay({ key_id: requireEnv("RAZORPAY_KEY_ID"), key_secret: requireEnv("RAZORPAY_KEY_SECRET") }); }
+export function verifyRazorpayPayment(orderId: string, paymentId: string, signature: string) {
+  const expected = crypto.createHmac("sha256", requireEnv("RAZORPAY_KEY_SECRET")).update(`${orderId}|${paymentId}`).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }
-
-export async function razorpay() {
-  const { keyId, keySecret } = await getRazorpayConfig();
-  if (!keyId || !keySecret) throw new Error("Razorpay credentials are not configured");
-  return new Razorpay({ key_id: keyId, key_secret: keySecret });
-}
-
-export async function verifyRazorpayPayment(orderId: string, paymentId: string, signature: string) {
-  const { keySecret } = await getRazorpayConfig();
-  if (!keySecret) throw new Error("Razorpay secret is not configured");
-  const expected = crypto.createHmac("sha256", keySecret).update(`${orderId}|${paymentId}`).digest("hex");
-  return safeCompare(expected, signature);
-}
-
-export async function verifyWebhook(rawBody: string, signature: string) {
-  const { webhookSecret } = await getRazorpayConfig();
-  if (!webhookSecret) throw new Error("Razorpay webhook secret is not configured");
-  const expected = crypto.createHmac("sha256", webhookSecret).update(rawBody).digest("hex");
-  return safeCompare(expected, signature);
+export function verifyWebhook(rawBody: string, signature: string) {
+  const expected = crypto.createHmac("sha256", requireEnv("RAZORPAY_WEBHOOK_SECRET")).update(rawBody).digest("hex");
+  return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature));
 }
