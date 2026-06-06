@@ -1,0 +1,1 @@
+import { Skeleton } from "@/components/ui/skeleton";export default function Loading(){return <main className="container py-10"><Skeleton className="h-10 w-64"/><Skeleton className="mt-6 h-80 w-full"/></main>}

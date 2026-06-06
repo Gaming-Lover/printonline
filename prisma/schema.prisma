@@ -1,0 +1,69 @@
+generator client { provider = "prisma-client-js" }
+datasource db { provider = "postgresql" url = env("DATABASE_URL") }
+
+enum Role { USER ADMIN }
+enum PrintType { BW COLOR }
+enum PaperSize { A4 A3 }
+enum SideType { SINGLE DOUBLE }
+enum PaymentStatus { PENDING PAID FAILED }
+enum OrderStatus { PENDING PAID PRINTING PRINTED FAILED }
+enum PrintJobStatus { WAITING PRINTING PRINTED }
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  orders    Order[]
+}
+
+model Order {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileUrl       String
+  filePath      String
+  fileName      String
+  pages         Int
+  copies        Int
+  printType     PrintType
+  paperSize     PaperSize
+  sideType      SideType
+  amount        Int
+  paymentStatus PaymentStatus @default(PENDING)
+  orderStatus   OrderStatus   @default(PENDING)
+  createdAt     DateTime      @default(now())
+  payment       Payment?
+  printJob      PrintJob?
+
+  @@index([userId, createdAt])
+  @@index([orderStatus, createdAt])
+}
+
+model Payment {
+  id                String        @id @default(cuid())
+  orderId           String        @unique
+  order             Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  razorpayOrderId   String        @unique
+  razorpayPaymentId String?
+  amount            Int
+  status            PaymentStatus @default(PENDING)
+  createdAt         DateTime      @default(now())
+}
+
+model Pricing {
+  id         String   @id @default(cuid())
+  bwPrice    Int      @default(2)
+  colorPrice Int      @default(10)
+  updatedAt  DateTime @updatedAt
+}
+
+model PrintJob {
+  id        String         @id @default(cuid())
+  orderId   String         @unique
+  order     Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  status    PrintJobStatus @default(WAITING)
+  createdAt DateTime       @default(now())
+}

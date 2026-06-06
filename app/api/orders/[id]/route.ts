@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";import { prisma } from "@/lib/prisma";import { requireUser } from "@/lib/auth";
+export async function GET(_:Request,{params}:{params:Promise<{id:string}>}){const user=await requireUser();const {id}=await params;const order=await prisma.order.findFirst({where:{id,...(user.role==="ADMIN"?{}:{userId:user.id})},include:{payment:true,printJob:true,user:{select:{email:true,name:true}}}});if(!order)return NextResponse.json({error:"Not found"},{status:404});return NextResponse.json(order);}
