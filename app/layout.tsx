@@ -1,0 +1,3 @@
+import type { Metadata } from "next";import { Inter } from "next/font/google";import "./globals.css";import { QueryProvider } from "@/components/providers/query-provider";import { ThemeProvider } from "@/components/providers/theme-provider";import { Nav } from "@/components/nav";
+const inter=Inter({subsets:["latin"]});export const metadata:Metadata={title:"PrintHub - Cloud Print Ordering",description:"Upload, pay, and queue print jobs online."};
+export default function RootLayout({children}:{children:React.ReactNode}){return <html lang="en" suppressHydrationWarning><body className={inter.className}><ThemeProvider><QueryProvider><Nav/>{children}</QueryProvider></ThemeProvider></body></html>}

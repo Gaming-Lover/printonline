@@ -1,0 +1,3 @@
+import { NextResponse } from "next/server";import { prisma } from "@/lib/prisma";import { requireAdmin } from "@/lib/auth";import { startOfDay,startOfMonth,startOfWeek } from "date-fns";
+async function sum(from?:Date){const r=await prisma.order.aggregate({_sum:{amount:true},where:{paymentStatus:"PAID",createdAt:from?{gte:from}:undefined}});return r._sum.amount??0}
+export async function GET(){await requireAdmin();const now=new Date();const [today,weekly,monthly,total,count]=await Promise.all([sum(startOfDay(now)),sum(startOfWeek(now)),sum(startOfMonth(now)),sum(),prisma.order.count()]);return NextResponse.json({today,weekly,monthly,total,count});}
